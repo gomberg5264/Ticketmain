@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String, Boolean, Text, Enum, ForeignKey
+from sqlalchemy import Integer, String, Boolean, Text, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from flask_login import UserMixin
 
@@ -20,10 +20,8 @@ class Ticket(db.Model):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     priority: Mapped[str] = mapped_column(Enum('urgent', 'not urgent', 'low priority', name='priority_types'), nullable=False)
     is_closed: Mapped[bool] = mapped_column(Boolean, default=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable=False)
-    user: Mapped["User"] = relationship("User", foreign_keys=[user_id], back_populates="tickets")
-    assigned_to_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable=True)
-    assigned_to: Mapped["User"] = relationship("User", foreign_keys=[assigned_to_id])
+    user_id: Mapped[int] = mapped_column(Integer, db.ForeignKey('users.id'), nullable=False)
+    user: Mapped["User"] = relationship("User", back_populates="tickets")
 
     def to_dict(self):
         return {
@@ -32,9 +30,7 @@ class Ticket(db.Model):
             'description': self.description,
             'priority': self.priority,
             'is_closed': self.is_closed,
-            'user_id': self.user_id,
-            'assigned_to_id': self.assigned_to_id,
-            'assigned_to': f'User {self.assigned_to_id}' if self.assigned_to_id else None
+            'user_id': self.user_id
         }
 
-User.tickets = relationship("Ticket", order_by=Ticket.id, back_populates="user", foreign_keys=[Ticket.user_id])
+User.tickets = relationship("Ticket", order_by=Ticket.id, back_populates="user")
