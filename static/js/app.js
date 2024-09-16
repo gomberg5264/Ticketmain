@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadTickets() {
         try {
             const response = await fetch('/api/tickets');
+            if (response.status === 401) {
+                // Redirect to login page if not authenticated
+                window.location.href = '/login';
+                return;
+            }
             const tickets = await response.json();
             renderTickets(tickets);
         } catch (error) {
@@ -22,15 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function createTicket() {
-        console.log('Creating ticket...');
         const title = document.getElementById('title').value;
         const description = document.getElementById('description').value;
         const priority = document.getElementById('priority').value;
 
-        console.log('Ticket data:', { title, description, priority });
-
         try {
-            console.log('Sending POST request to /api/tickets');
             const response = await fetch('/api/tickets', {
                 method: 'POST',
                 headers: {
@@ -39,16 +40,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ title, description, priority }),
             });
 
-            console.log('Response status:', response.status);
+            if (response.status === 401) {
+                // Redirect to login page if not authenticated
+                window.location.href = '/login';
+                return;
+            }
 
             if (response.ok) {
-                console.log('Ticket created successfully');
                 ticketForm.reset();
                 loadTickets();
             } else {
-                console.error('Error creating ticket:', response.statusText);
                 const errorData = await response.json();
-                console.error('Error details:', errorData);
+                console.error('Error creating ticket:', errorData);
             }
         } catch (error) {
             console.error('Error creating ticket:', error);
@@ -60,6 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`/api/tickets/${id}`, {
                 method: 'PUT',
             });
+
+            if (response.status === 401) {
+                // Redirect to login page if not authenticated
+                window.location.href = '/login';
+                return;
+            }
 
             if (response.ok) {
                 loadTickets();
