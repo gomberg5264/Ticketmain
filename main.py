@@ -17,10 +17,7 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
-
-# Add a default user with the PIN 52640628
-with app.app_context():
-    if not User.query.first():
+    if not User.query.get(1):
         default_user = User(pin_hash=generate_password_hash('52640628'))
         db.session.add(default_user)
         db.session.commit()
@@ -50,7 +47,7 @@ def login():
             flash('PIN is required.')
             return redirect(url_for('login'))
 
-        user = User.query.first()
+        user = User.query.get(1)
         if user and check_password_hash(user.pin_hash, pin):
             login_user(user)
             next_page = request.args.get('next')
@@ -71,7 +68,7 @@ def logout():
 @app.route('/api/tickets', methods=['GET'])
 @login_required
 def get_tickets():
-    tickets = Ticket.query.filter_by(user_id=current_user.id).all()
+    tickets = Ticket.query.all()
     return jsonify([ticket.to_dict() for ticket in tickets])
 
 @app.route('/api/tickets', methods=['POST'])
@@ -85,7 +82,8 @@ def create_ticket():
         title=data['title'],
         description=data['description'],
         priority=data['priority'],
-        user_id=current_user.id
+        user_id=current_user.id,
+        assigned_to_id=data.get('assigned_to_id')
     )
     db.session.add(new_ticket)
     db.session.commit()
@@ -93,13 +91,23 @@ def create_ticket():
 
 @app.route('/api/tickets/<int:ticket_id>', methods=['PUT'])
 @login_required
-def close_ticket(ticket_id):
+def update_ticket(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
-    if ticket.user_id != current_user.id:
-        return jsonify({"error": "Unauthorized"}), 403
-    ticket.is_closed = True
+    data = request.json
+
+    if data.get('is_closed') is not None:
+        ticket.is_closed = data['is_closed']
+    if data.get('assigned_to_id') is not None:
+        ticket.assigned_to_id = data['assigned_to_id']
+
     db.session.commit()
     return jsonify(ticket.to_dict())
+
+@app.route('/api/users', methods=['GET'])
+@login_required
+def get_users():
+    users = User.query.all()
+    return jsonify([{"id": user.id} for user in users])
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

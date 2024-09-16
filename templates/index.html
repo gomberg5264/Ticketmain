@@ -12,6 +12,7 @@
         <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
             <a class="navbar-brand" href="#">Ticket System</a>
             <div class="navbar-nav ml-auto">
+                <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>
             </div>
         </nav>
         
@@ -32,6 +33,12 @@
                     <option value="urgent">Urgent</option>
                     <option value="not urgent">Not Urgent</option>
                     <option value="low priority">Low Priority</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="assigned-to">Assign To</label>
+                <select class="form-control" id="assigned-to">
+                    <option value="">Unassigned</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary">Create Ticket</button>
