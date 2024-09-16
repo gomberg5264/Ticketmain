@@ -96,5 +96,12 @@ def close_ticket(ticket_id):
     db.session.commit()
     return jsonify(ticket.to_dict()), 200
 
+@app.route('/api/tickets/clear-old', methods=['POST'])
+@login_required
+def clear_old_tickets():
+    Ticket.query.filter_by(is_closed=True).delete()
+    db.session.commit()
+    return jsonify({"message": "Old tickets cleared successfully"}), 200
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

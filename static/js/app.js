@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const ticketForm = document.getElementById('ticket-form');
     const ticketList = document.getElementById('ticket-list');
+    const clearOldTicketsButton = document.getElementById('clear-old-tickets');
 
     // Load tickets on page load
     loadTickets();
@@ -10,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         createTicket();
     });
+
+    // Add event listener for clear old tickets button
+    clearOldTicketsButton.addEventListener('click', clearOldTickets);
 
     async function loadTickets() {
         try {
@@ -82,6 +86,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error closing ticket:', error);
+        }
+    }
+
+    async function clearOldTickets() {
+        try {
+            const response = await fetch('/api/tickets/clear-old', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+
+            if (response.ok) {
+                loadTickets();
+            } else {
+                const errorData = await response.json();
+                console.error('Error clearing old tickets:', errorData);
+            }
+        } catch (error) {
+            console.error('Error clearing old tickets:', error);
         }
     }
 
