@@ -18,9 +18,12 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+# Add a default user with the PIN 52640628
 with app.app_context():
-    Ticket.query.filter_by(title='Test Ticket').delete()
-    db.session.commit()
+    if not User.query.first():
+        default_user = User(pin_hash=generate_password_hash('52640628'))
+        db.session.add(default_user)
+        db.session.commit()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -39,20 +42,16 @@ def index():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
+
     if request.method == 'POST':
         pin = request.form.get('pin')
-        
+
         if not pin:
             flash('PIN is required.')
             return redirect(url_for('login'))
-        
-        if pin == '52640628':
-            user = User.query.first()
-            if not user:
-                user = User(hash=generate_password_hash(pin))
-                db.session.add(user)
-                db.session.commit()
+
+        user = User.query.first()
+        if user and check_password_hash(user.pin_hash, pin):
             login_user(user)
             next_page = request.args.get('next')
             if not next_page or urlparse(next_page).netloc != '':
@@ -60,7 +59,7 @@ def login():
             return redirect(next_page)
         else:
             flash('Invalid PIN')
-    
+
     return render_template('login.html')
 
 @app.route('/logout')
@@ -81,7 +80,7 @@ def create_ticket():
     data = request.json
     if not data or not all(key in data for key in ('title', 'description', 'priority')):
         return jsonify({"error": "Invalid ticket data"}), 400
-    
+
     new_ticket = Ticket(
         title=data['title'],
         description=data['description'],
