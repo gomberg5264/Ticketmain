@@ -60,6 +60,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function closeTicket(ticketId) {
+        try {
+            const response = await fetch(`/api/tickets/${ticketId}/close`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+
+            if (response.ok) {
+                loadTickets();
+            } else {
+                const errorData = await response.json();
+                console.error('Error closing ticket:', errorData);
+            }
+        } catch (error) {
+            console.error('Error closing ticket:', error);
+        }
+    }
+
     function renderTickets(tickets) {
         ticketList.innerHTML = '';
         tickets.forEach((ticket) => {
@@ -71,6 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p><strong>Description:</strong> ${ticket.description}</p>
                 <p><strong>Status:</strong> ${ticket.is_closed ? 'Closed' : 'Open'}</p>
             `;
+            if (!ticket.is_closed) {
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Close Ticket';
+                closeButton.className = 'btn btn-danger close-button';
+                closeButton.addEventListener('click', () => closeTicket(ticket.id));
+                li.appendChild(closeButton);
+            }
             ticketList.appendChild(li);
         });
     }

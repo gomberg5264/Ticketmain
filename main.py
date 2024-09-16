@@ -88,5 +88,13 @@ def create_ticket():
     db.session.commit()
     return jsonify(new_ticket.to_dict()), 201
 
+@app.route('/api/tickets/<int:ticket_id>/close', methods=['PUT'])
+@login_required
+def close_ticket(ticket_id):
+    ticket = Ticket.query.get_or_404(ticket_id)
+    ticket.is_closed = True
+    db.session.commit()
+    return jsonify(ticket.to_dict()), 200
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
