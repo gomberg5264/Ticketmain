@@ -1,10 +1,14 @@
 # Use Python 3.11 as the base image
 FROM python:3.11-alpine
 
+# Install dependencies needed for psycopg2 (including PostgreSQL development libraries)
+RUN apk update && apk add --no-cache \
+    postgresql-dev gcc python3-dev musl-dev
+
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the Python project files into the container
+# Copy the project files into the container
 COPY . /app
 
 # Install Python dependencies
