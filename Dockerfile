@@ -1,23 +1,17 @@
-# Use an official Node.js runtime as a parent image
-FROM node:18-slim
+# Use Python 3.11 as the base image
+FROM python:3.11-alpine
 
-# Set the working directory inside the container
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json files
-COPY package*.json ./
+# Copy the Python project files into the container
+COPY . /app
 
-# Install all dependencies
-RUN npm install --no-cache --legacy-peer-deps
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire project into the working directory
-COPY . .
+# Expose the necessary port for the Flask server
+EXPOSE 5000
 
-# Make port 3000 available to the world outside this container
-EXPOSE 3000
-
-# Define environment variables
-ENV MONGODB_URI=${MONGODB_URI:-"mongodb://localhost:27017/ticketmain"}
-
-# Run the app using npm
-CMD ["npm", "start"]
+# Command to run the Flask server
+CMD ["python", "main.py"]
